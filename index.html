@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#060a12" id="meta-theme">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ป.วิ.อาญา">
+<title>ป.วิ.อาญา — ประมวลกฎหมายวิธีพิจารณาความอาญา</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap">
+<style>
+/* ═══ CSS VARIABLES — DARK (default) ═══ */
+:root,[data-theme="dark"]{
+  --bg:#060a12;--bg1:#0b1120;--bg2:#111827;--bg3:#1a2640;
+  --bd:#1e2d42;--bd2:#253650;
+  --tx:#dde4f0;--tx2:#8fa8c8;--tx3:#4a6080;
+  --gold:#c9952a;--gold2:#a87820;--goldbg:rgba(201,149,42,.13);
+  --blue:#3b82f6;--bluebg:rgba(59,130,246,.13);
+  --red:#c0392b;--redbg:rgba(192,57,43,.13);
+  --green:#2ecc71;--greenbg:rgba(46,204,113,.1);
+  --sb-bg:#08101e;--sb-hd:#0d1830;--sb-tx:rgba(255,255,255,.72);
+  --sb-tx2:rgba(255,255,255,.38);--sb-act:rgba(201,149,42,.16);
+  --card-bg:#0b1120;--card-brd:#1e2d42;
+  --shadow:0 1px 4px rgba(0,0,0,.35);
+  --hdr-bg:#0b1120;--hdr-brd:#1e2d42;
+}
+[data-theme="light"]{
+  --bg:#f4f6fa;--bg1:#ffffff;--bg2:#f0f3f8;--bg3:#e6eaf2;
+  --bd:#d0d8e8;--bd2:#b8c4d8;
+  --tx:#1a2336;--tx2:#4a5c7a;--tx3:#8a9ab8;
+  --gold:#9a6e18;--gold2:#7a5510;--goldbg:rgba(154,110,24,.1);
+  --blue:#1d5dbf;--bluebg:rgba(29,93,191,.1);
+  --red:#b52020;--redbg:rgba(181,32,32,.1);
+  --green:#1a7a44;--greenbg:rgba(26,122,68,.1);
+  --sb-bg:#1c3060;--sb-hd:#16274e;--sb-tx:rgba(255,255,255,.85);
+  --sb-tx2:rgba(255,255,255,.45);--sb-act:rgba(255,220,100,.18);
+  --card-bg:#ffffff;--card-brd:#d8e0f0;
+  --shadow:0 1px 4px rgba(0,0,0,.08);
+  --hdr-bg:#ffffff;--hdr-brd:#d0d8e8;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);
+  font-family:'Sarabun','Noto Sans Thai',sans-serif;font-size:14px;transition:background .2s,color .2s}
+
+/* ──────────────────────────────────
+   LAYOUT
+────────────────────────────────── */
+#app{
+  height:100dvh;
+  display:grid;
+  grid-template-columns:var(--sidebar-w,280px) 1fr;
+  grid-template-rows:auto 1fr;
+  overflow:hidden;
+  transition:grid-template-columns .25s cubic-bezier(.4,0,.2,1);
+}
+#app.sidebar-collapsed{--sidebar-w:0px}
+/* mobile: sidebar overlays */
+@media(max-width:700px){
+  #app{grid-template-columns:1fr}
+  #app.sidebar-open #sidebar{transform:translateX(0)}
+  #app.sidebar-open #overlay{opacity:1;pointer-events:all}
+}
+
+/* ──────────────────────────────────
+   HEADER (row 1, full width)
+────────────────────────────────── */
+#hdr{
+  grid-column:1/-1;
+  background:var(--hdr-bg);border-bottom:1px solid var(--hdr-brd);
+  padding:0 14px;padding-top:env(safe-area-inset-top,0px);
+  height:calc(54px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;gap:10px;
+  z-index:50;position:relative;
+}
+.h-logo{width:34px;height:34px;flex-shrink:0;border-radius:9px;
+  background:linear-gradient(145deg,#1e4080,#0c1e50);
+  display:flex;align-items:center;justify-content:center;font-size:17px}
+.h-text{flex:1;min-width:0}
+.h-title{font-size:15px;font-weight:700;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-sub{font-size:9.5px;color:var(--tx3);letter-spacing:.7px;text-transform:uppercase;margin-top:1px}
+.h-btn{background:var(--bg2);border:1px solid var(--bd);color:var(--tx2);
+  border-radius:8px;width:36px;height:36px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;
+  transition:all .15s;-webkit-user-select:none;user-select:none}
+.h-btn:active{opacity:.7}
+#toggle-sidebar-btn{display:none}
+@media(max-width:700px){#toggle-sidebar-btn{display:flex}}
+
+/* ──────────────────────────────────
+   SIDEBAR
+────────────────────────────────── */
+#sidebar{
+  grid-column:1;grid-row:2;
+  background:var(--sb-bg);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  border-right:1px solid rgba(255,255,255,.07);
+  transition:width .25s cubic-bezier(.4,0,.2,1);
+}
+@media(max-width:700px){
+  #sidebar{
+    position:fixed;top:0;left:0;bottom:0;width:285px;z-index:300;
+    transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+    padding-top:env(safe-area-inset-top,0px);
+  }
+}
+
+.sb-head{
+  background:var(--sb-hd);
+  padding:14px 14px 10px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;
+}
+.sb-head h2{color:var(--gold);font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+#sb-stats{color:var(--sb-tx2);font-size:10.5px;margin-top:3px}
+
+/* Search in sidebar */
+.sb-search{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.sb-search-wrap{position:relative}
+.sb-search-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--sb-tx2);font-size:12px;pointer-events:none}
+#sb-sinput{
+  width:100%;padding:7px 28px 7px 28px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;color:var(--sb-tx);font-size:13px;font-family:inherit;outline:none;
+  transition:border-color .15s;
+}
+#sb-sinput:focus{border-color:rgba(201,149,42,.5)}
+#sb-sinput::placeholder{color:var(--sb-tx2)}
+#sb-xcl{position:absolute;right:7px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--sb-tx2);font-size:16px;cursor:pointer;display:none;line-height:1;padding:2px}
+
+/* Sidebar nav tree */
+#sb-tree{flex:1;overflow-y:auto;padding:6px 0 16px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent}
+#sb-tree::-webkit-scrollbar{width:4px}
+#sb-tree::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+/* Level 1: ภาค */
+.sb-part{margin-bottom:2px}
+.sb-part-hd{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 12px 8px 14px;
+  color:var(--gold);font-size:11.5px;font-weight:700;letter-spacing:.4px;
+  cursor:pointer;-webkit-user-select:none;user-select:none;
+  transition:background .12s;
+}
+.sb-part-hd:hover{background:rgba(255,255,255,.04)}
+.sb-part-hd .arr{font-size:9px;margin-left:auto;transition:transform .2s;color:var(--sb-tx2)}
+.sb-part.open>.sb-part-hd .arr{transform:rotate(90deg)}
+.sb-part-children{display:none}
+.sb-part.open>.sb-part-children{display:block}
+
+/* Level 2: ลักษณะ / หมวดใหญ่ */
+.sb-chapter{margin:0}
+.sb-chapter-hd{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px 6px 24px;
+  color:var(--sb-tx);font-size:11.5px;font-weight:600;
+  cursor:pointer;-webkit-user-select:none;user-select:none;
+  transition:background .12s;
+  border-left:2px solid transparent;
+}
+.sb-chapter-hd:hover{background:rgba(255,255,255,.04)}
+.sb-chapter-hd .arr{font-size:8px;margin-left:auto;transition:transform .2s;color:var(--sb-tx2);flex-shrink:0}
+.sb-chapter.open>.sb-chapter-hd .arr{transform:rotate(90deg)}
+.sb-chapter-children{display:none}
+.sb-chapter.open>.sb-chapter-children{display:block}
+
+/* Level 3: หมวด */
+.sb-section{margin:0}
+.sb-section-hd{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 10px 5px 32px;
+  color:var(--sb-tx2);font-size:11px;font-weight:500;
+  cursor:pointer;-webkit-user-select:none;user-select:none;
+  transition:background .12s;
+  border-left:2px solid transparent;
+}
+.sb-section-hd:hover{background:rgba(255,255,255,.04)}
+.sb-section-hd .arr{font-size:8px;margin-left:auto;transition:transform .2s;color:var(--sb-tx2);opacity:.6;flex-shrink:0}
+.sb-section.open>.sb-section-hd .arr{transform:rotate(90deg)}
+.sb-section-children{display:none}
+.sb-section.open>.sb-section-children{display:block}
+
+/* Level 4: มาตรา links */
+.sb-link{
+  display:flex;align-items:center;gap:7px;
+  padding:5px 10px 5px 40px;
+  color:var(--sb-tx);font-size:13px;
+  cursor:pointer;-webkit-user-select:none;user-select:none;
+  transition:background .1s,color .1s;
+  border-left:2px solid transparent;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sb-link:hover{background:rgba(255,255,255,.05);color:#fff}
+.sb-link.active{background:var(--sb-act);color:var(--gold);border-left-color:var(--gold);font-weight:600}
+.sb-link.has-note .dot-note,.sb-link.has-edit .dot-edit{display:inline-block}
+.dot-note,.dot-edit{display:none;width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dot-note{background:var(--gold);opacity:.9}
+.dot-edit{background:var(--blue);opacity:.9}
+/* when no section: link is at level 3 indent */
+.sb-chapter>.sb-chapter-children>.sb-link{padding-left:32px}
+
+/* Sidebar actions */
+.sb-actions{border-top:1px solid rgba(255,255,255,.07);padding:10px;flex-shrink:0;display:flex;flex-direction:column;gap:6px}
+.sb-action-btn{width:100%;padding:8px 10px;border:none;border-radius:8px;font-family:inherit;font-size:12.5px;
+  cursor:pointer;display:flex;align-items:center;gap:7px;transition:opacity .15s}
+.sb-action-btn:active{opacity:.7}
+.btn-exp{background:rgba(201,149,42,.18);color:#e8c46a;border:1px solid rgba(201,149,42,.25)}
+.btn-imp{background:rgba(59,130,246,.15);color:#7ab3f8;border:1px solid rgba(59,130,246,.2)}
+.btn-rst{background:rgba(192,57,43,.15);color:#ef9090;border:1px solid rgba(192,57,43,.2)}
+
+/* ──────────────────────────────────
+   OVERLAY (mobile)
+────────────────────────────────── */
+#overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:250;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+}
+@media(max-width:700px){#overlay{display:block}}
+
+/* ──────────────────────────────────
+   MAIN CONTENT AREA
+────────────────────────────────── */
+#main{
+  grid-column:2;grid-row:2;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:0 0 80px;
+  background:var(--bg);
+  transition:background .2s;
+}
+@media(max-width:700px){#main{grid-column:1}}
+
+/* ── Search bar in main ── */
+#search-bar{
+  position:sticky;top:0;z-index:40;
+  background:var(--bg);border-bottom:1px solid var(--bd);
+  padding:8px 14px;
+}
+.sw{position:relative}
+.sico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--tx3);font-size:13px;pointer-events:none}
+#sinput{
+  width:100%;padding:8px 32px 8px 32px;background:var(--bg2);
+  border:1.5px solid var(--bd);border-radius:9px;color:var(--tx);
+  font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none;transition:border .15s;
+}
+#sinput:focus{border-color:var(--gold)}
+#sinput::placeholder{color:var(--tx3)}
+#xcl{position:absolute;right:9px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--tx3);font-size:20px;cursor:pointer;display:none;padding:2px;line-height:1}
+
+/* ── Result count ── */
+#rcount{padding:10px 16px 4px;font-size:10.5px;color:var(--tx3)}
+
+/* ── Article cards ── */
+#articles{padding:0 12px}
+.part-divider{
+  padding:14px 4px 6px;
+  font-size:9.5px;color:var(--tx3);letter-spacing:1.2px;text-transform:uppercase;font-weight:700;
+  border-bottom:1px solid var(--bd);margin-bottom:8px;margin-top:4px;
+}
+.article-card{
+  background:var(--card-bg);border:1px solid var(--card-brd);border-radius:11px;
+  overflow:hidden;margin-bottom:10px;
+  box-shadow:var(--shadow);
+  transition:box-shadow .15s,background .2s,border-color .2s;
+}
+.article-card.has-note{border-left:3px solid var(--gold)}
+.article-card.has-edit{border-left:3px solid var(--blue)}
+.article-card.highlight{box-shadow:0 0 0 2px var(--gold)}
+
+.article-header{
+  padding:11px 14px 9px;border-bottom:1px solid var(--bd);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:8px;
+}
+.article-num{font-size:14.5px;font-weight:700;color:var(--tx)}
+.article-breadcrumb{font-size:10.5px;color:var(--tx3);margin-top:2px}
+
+.article-tools{display:flex;gap:6px;flex-shrink:0;margin-top:2px}
+.tool-btn{
+  background:none;border:1px solid var(--bd);border-radius:6px;cursor:pointer;
+  font-size:13px;padding:4px 8px;color:var(--tx3);transition:all .15s;font-family:inherit;
+}
+.tool-btn:hover{border-color:var(--gold);color:var(--tx)}
+.tool-btn.active{background:var(--bluebg);border-color:var(--blue);color:var(--blue)}
+.tool-btn.note-active{background:var(--goldbg);border-color:var(--gold);color:var(--gold)}
+
+.article-body{padding:13px 14px}
+
+.article-content{
+  font-size:14px;line-height:1.9;color:var(--tx2);
+  white-space:pre-wrap;transition:color .2s;
+}
+.article-content.edited{color:var(--tx)}
+mark{background:rgba(201,149,42,.22);color:#f0c060;border-radius:2px;padding:0 1px}
+
+/* ── Edit area ── */
+.edit-area-wrap{display:none;margin-top:10px}
+.edit-area-wrap.visible{display:block}
+.edit-textarea{
+  width:100%;padding:10px;background:var(--bg2);border:1.5px solid var(--bd);
+  border-radius:8px;color:var(--tx);font-size:14px;line-height:1.9;
+  font-family:inherit;resize:vertical;min-height:100px;outline:none;transition:border .15s;
+}
+.edit-textarea:focus{border-color:var(--blue)}
+.edit-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.btn-save{padding:7px 16px;border-radius:7px;border:none;background:var(--gold2);
+  color:#000;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
+.btn-cancel,.btn-restore{padding:7px 14px;border-radius:7px;font-size:12.5px;
+  cursor:pointer;font-family:inherit;background:var(--bg3);border:1px solid var(--bd);color:var(--tx2)}
+.btn-restore{color:var(--blue);border-color:var(--blue)}
+.edited-badge{font-size:9px;background:var(--bluebg);color:#7ab3f0;
+  border:1px solid rgba(59,130,246,.35);border-radius:4px;padding:1px 5px;margin-left:5px}
+
+/* ── Note area ── */
+.note-wrap{display:none;margin-top:10px}
+.note-wrap.visible{display:block}
+.note-box{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.note-label{padding:8px 12px;font-size:10px;font-weight:700;color:var(--gold);
+  letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--bd)}
+.note-textarea{
+  width:100%;padding:10px 12px;background:transparent;border:none;outline:none;resize:vertical;
+  font-size:13px;color:var(--tx);line-height:1.85;font-family:inherit;min-height:80px;
+}
+.note-textarea::placeholder{color:var(--tx3)}
+.note-saved{display:none;padding:4px 12px 8px;font-size:11px;color:var(--green);font-style:italic}
+
+/* ── Empty state ── */
+#empty-state{text-align:center;padding:56px 20px;color:var(--tx3)}
+.empty-ico{font-size:38px;margin-bottom:12px;opacity:.4}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:calc(22px + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%) translateY(16px);
+  background:var(--bg3);border:1px solid var(--bd2);color:var(--tx);
+  padding:8px 16px;border-radius:20px;font-size:12.5px;
+  opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── FAB scroll-to-top ── */
+#fab{
+  position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  right:16px;width:44px;height:44px;border-radius:50%;
+  background:var(--gold2);color:#000;border:none;font-size:18px;cursor:pointer;
+  box-shadow:0 3px 12px rgba(0,0,0,.4);opacity:0;pointer-events:none;
+  transition:opacity .25s;z-index:200;display:flex;align-items:center;justify-content:center;
+}
+#fab.visible{opacity:1;pointer-events:all}
+
+/* ── Theme toggle button ── */
+.theme-toggle{
+  background:var(--bg2);border:1px solid var(--bd);color:var(--tx2);
+  border-radius:8px;padding:5px 9px;font-size:13px;cursor:pointer;font-family:inherit;
+  transition:all .15s;-webkit-user-select:none;user-select:none;white-space:nowrap;
+}
+.theme-toggle:active{opacity:.7}
+
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:up .18s ease}
+</style>
+</head>
+<body>
+<div id="app" class="sidebar-open">
+
+  <!-- ── HEADER ── -->
+  <header id="hdr">
+    <button class="h-btn" id="toggle-sidebar-btn" onclick="toggleSidebar()" title="สารบัญ">☰</button>
+    <div class="h-logo">⚖️</div>
+    <div class="h-text">
+      <div class="h-title">ป.วิ.อาญา</div>
+      <div class="h-sub" id="hdr-sub">ประมวลกฎหมายวิธีพิจารณาความอาญา</div>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+  </header>
+
+  <!-- ── SIDEBAR ── -->
+  <nav id="sidebar">
+    <div class="sb-head">
+      <h2>สารบัญ</h2>
+      <div id="sb-stats">กำลังโหลด...</div>
+    </div>
+
+    <div class="sb-search">
+      <div class="sb-search-wrap">
+        <span class="sb-search-ico">🔍</span>
+        <input type="search" id="sb-sinput" placeholder="ค้นหามาตรา..."
+          autocomplete="off" spellcheck="false" oninput="onSbSearch(this.value)">
+        <button id="sb-xcl" onclick="clearSbSearch()">×</button>
+      </div>
+    </div>
+
+    <div id="sb-tree"></div>
+
+    <div class="sb-actions">
+      <button class="sb-action-btn btn-exp" onclick="exportData()">📤 สำรองข้อมูล (Export)</button>
+      <button class="sb-action-btn btn-imp" onclick="document.getElementById('imp-file').click()">📥 นำเข้าข้อมูล (Import)</button>
+      <input type="file" id="imp-file" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="sb-action-btn btn-rst" onclick="confirmReset()">🗑 ล้างข้อมูลทั้งหมด</button>
+    </div>
+  </nav>
+
+  <!-- ── OVERLAY (mobile) ── -->
+  <div id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── MAIN ── -->
+  <main id="main">
+    <div id="search-bar">
+      <div class="sw">
+        <span class="sico">🔍</span>
+        <input type="search" id="sinput"
+          placeholder="ค้นหาเลขมาตรา หรือเนื้อความ เช่น ๕๘, จับ, สอบสวน..."
+          autocomplete="off" spellcheck="false" oninput="onSearch(this.value)">
+        <button id="xcl" onclick="clearSearch()">×</button>
+      </div>
+    </div>
+    <div id="rcount" class="rcount"></div>
+    <div id="articles"></div>
+    <div id="empty-state" style="display:none">
+      <div class="empty-ico">🔍</div>
+      <div>ไม่พบมาตราที่ค้นหา</div>
+    </div>
+  </main>
+</div>
+
+<button id="fab" onclick="scrollToTop()" title="กลับด้านบน">↑</button>
+<div id="toast"></div>
+
+<!-- ── DATA ── -->
+<script>
+const D=[
+{"num": "๑", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๑ บทนิยาม", "text": "ในประมวลกฎหมายนี้ ถ้าคำใดมีคำอธิบายไว้แล้ว ให้ถือตามความหมายดังได้อธิบายไว้ เว้นแต่ข้อความในตัวบทจะขัดกับคำอธิบายนั้น"},
+{"num": "๒", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๑ บทนิยาม", "text": "ในประมวลกฎหมายนี้\n(๑) \"ศาล\" หมายความถึง ศาลยุติธรรมหรือผู้พิพากษา ซึ่งมีอำนาจทำการอันเกี่ยวกับคดีอาญา\n(๒) \"ผู้ต้องหา\" หมายความถึง บุคคลผู้ถูกหาว่าได้กระทำความผิด แต่ยังมิได้ถูกฟ้องต่อศาล\n(๓) \"จำเลย\" หมายความถึง บุคคลซึ่งถูกฟ้องยังศาลแล้ว โดยข้อหาว่าได้กระทำความผิด\n(๔) \"ผู้เสียหาย\" หมายความถึง บุคคลผู้ได้รับความเสียหายเนื่องจากการกระทำผิดฐานใดฐานหนึ่ง รวมทั้งบุคคลอื่นที่มีอำนาจจัดการแทนได้ ดังบัญญัติไว้ในมาตรา ๔, ๕ และ ๖\n(๕) \"พนักงานอัยการ\" หมายความถึง เจ้าพนักงานผู้มีหน้าที่ฟ้องผู้ต้องหาต่อศาลทั้งในคดีหลวงและคดีราษฎร\n(๖) \"พนักงานสอบสวน\" หมายความถึง เจ้าพนักงานซึ่งกฎหมายให้มีอำนาจและหน้าที่ทำการสอบสวน\n(๗) \"พนักงานฝ่ายปกครองหรือตำรวจ\" หมายความถึง เจ้าพนักงานซึ่งกฎหมายให้มีอำนาจและหน้าที่รักษาความสงบเรียบร้อยของประชาชน ให้รวมทั้งพัศดี เจ้าพนักงานกรมสรรพสามิต กรมศุลกากร กรมเจ้าท่า พนักงานตรวจคนเข้าเมือง และเจ้าพนักงานอื่นในเมื่อทำการอันเกี่ยวกับการจับกุมปราบปรามผู้กระทำผิดกฎหมาย ซึ่งตนมีหน้าที่ต้องจับกุมหรือปราบปราม\n(๘) \"การสอบสวน\" หมายความถึง การรวบรวมพยานหลักฐานและการดำเนินการทั้งหลายอื่นตามบทบัญญัติแห่งประมวลกฎหมายนี้ ซึ่งพนักงานสอบสวนได้ทำไปเกี่ยวกับความผิดที่กล่าวหา เพื่อที่จะทราบข้อเท็จจริงหรือพิสูจน์ความผิด และเพื่อจะเอาตัวผู้กระทำผิดมาฟ้องลงโทษ\n(๙) \"คำร้องทุกข์\" หมายความถึง การที่ผู้เสียหายได้กล่าวหาต่อเจ้าหน้าที่ตามบทบัญญัติแห่งประมวลกฎหมายนี้ ว่ามีผู้กระทำความผิดขึ้น จะรู้ตัวผู้กระทำความผิดหรือไม่ก็ตาม ซึ่งมีความประสงค์จะให้ผู้กระทำความผิดได้รับโทษ\n(๑๐) \"คำกล่าวโทษ\" หมายความถึง การที่บุคคลอื่นซึ่งไม่ใช่ผู้เสียหายได้กล่าวหาต่อเจ้าหน้าที่ว่ามีบุคคลกระทำความผิดขึ้น\n(๑๑) \"หมาย\" หมายความถึง หนังสือบงการซึ่งออกตามบทบัญญัติแห่งประมวลกฎหมายนี้ สั่งให้เจ้าหน้าที่หรือบุคคลใดทำหรือละเว้นการอย่างใด"},
+{"num": "๓", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๑ บทนิยาม", "text": "บุคคลดังจะกล่าวต่อไปนี้ จัดเป็นเจ้าพนักงานในประมวลกฎหมายนี้ คือ\n(๑) ผู้พิพากษาหรือตุลาการ\n(๒) พนักงานอัยการ\n(๓) สมาชิกสภาผู้แทนราษฎร\n(๔) สมาชิกวุฒิสภา\n(๕) นายกรัฐมนตรี รัฐมนตรี ปลัดกระทรวง อธิบดีและผู้ว่าราชการจังหวัด\n(๖) ข้าราชการ\n(๗) พนักงานองค์การของรัฐบาล\n(๘) ข้าราชการส่วนท้องถิ่น\n(๙) ทหารซึ่งมียศตั้งแต่ร้อยตรี เรือตรี หรือเรืออากาศตรีขึ้นไป"},
+{"num": "๔", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๑ บทนิยาม", "text": "ในคดีอาญาซึ่งผู้เสียหายเป็นผู้หญิงถูกกระทำชำเรา หรือพยายามกระทำชำเรา สามีของผู้เสียหายมีอำนาจจัดการแทนผู้เสียหายได้ในเมื่อผู้เสียหายนั้นไม่สามารถจะจัดการเองได้ด้วยกายหรือจิตใจ"},
+{"num": "๕", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๑ บทนิยาม", "text": "บุคคลเหล่านี้จัดการแทนผู้เสียหายได้ คือ\n(๑) ผู้แทนโดยชอบธรรมหรือผู้อนุบาล เฉพาะแต่ในความผิดซึ่งได้กระทำต่อผู้เยาว์หรือผู้ไร้ความสามารถซึ่งอยู่ในความดูแล\n(๒) ผู้บุพการี ผู้สืบสันดาน สามีหรือภริยา เฉพาะแต่ในความผิดอาญาซึ่งผู้เสียหายถูกทำร้ายถึงตายหรือบาดเจ็บจนไม่สามารถจะจัดการเองได้"},
+{"num": "๖", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๑ บทนิยาม", "text": "ในคดีอาญาซึ่งผู้เสียหายเป็นนิติบุคคล ผู้จัดการหรือผู้แทนอื่นๆ ของนิติบุคคลนั้น มีอำนาจจัดการแทนผู้เสียหายได้"},
+{"num": "๗", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๒ อำนาจพนักงานสอบสวน", "text": "ในจังหวัดอื่นนอกจากกรุงเทพมหานคร พนักงานสอบสวนซึ่งมีอำนาจสอบสวนได้แก่ พนักงานสอบสวนซึ่งท้องที่ที่ความผิดเกิด หรืออ้างว่าได้เกิด หรือพบการกระทำความผิด หรือผู้ต้องหามีที่อยู่ หรือถูกจับอยู่ในเขตอำนาจ\nในกรุงเทพมหานคร ให้พนักงานสอบสวนกองปราบปรามมีอำนาจสอบสวนคดีอาญาได้ทั่วราชอาณาจักร"},
+{"num": "๘", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๒ อำนาจพนักงานสอบสวน", "text": "เมื่อมีการกล่าวหาว่าบุคคลใดกระทำความผิดอาญา และปรากฏว่าบุคคลนั้นมิได้มีที่อยู่ประจำ หรือไม่มีที่อยู่เป็นหลักแหล่ง หรือถูกกล่าวหาว่าได้กระทำความผิดหลายท้องที่ พนักงานสอบสวนซึ่งผู้นั้นถูกจับ หรือพนักงานสอบสวนแห่งท้องที่ที่พบการกระทำความผิดก่อนก็ดี หรือแห่งท้องที่ที่ผู้ต้องหามีที่อยู่ก็ดี มีอำนาจสอบสวนได้"},
+{"num": "๙", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๒ อำนาจพนักงานสอบสวน", "text": "ในกรณีที่ความผิดส่วนหนึ่งเกิดขึ้นในราชอาณาจักรหรือผู้ต้องหามีสัญชาติไทย หรือผู้เสียหายมีสัญชาติไทย พนักงานสอบสวนมีอำนาจสอบสวนได้"},
+{"num": "๑๐", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๒ อำนาจพนักงานสอบสวน", "text": "เมื่อมีพนักงานสอบสวนหลายคนมีอำนาจสอบสวนได้ พนักงานสอบสวนซึ่งรับคำร้องทุกข์หรือคำกล่าวโทษไว้ก่อน มีอำนาจสอบสวน แต่ถ้าผู้ต้องหาถูกจับในท้องที่อื่น พนักงานสอบสวนซึ่งจับหรือรับตัวผู้ต้องหาไว้มีอำนาจสอบสวน"},
+{"num": "๑๑", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๓ อำนาจศาล", "text": "ศาลมีอำนาจพิจารณาพิพากษาคดีอาญาทั้งปวงซึ่งเกิดในเขตอำนาจศาลนั้น"},
+{"num": "๑๒", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๓ อำนาจศาล", "text": "ในกรณีที่ความผิดเกิดขึ้นในเขตอำนาจศาลหลายศาล ไม่ว่าจะเป็นศาลชั้นต้นศาลเดียวกันหรือต่างกัน ให้ศาลที่ได้รับฟ้องคดีไว้ก่อนมีอำนาจพิจารณาพิพากษาคดีนั้นได้"},
+{"num": "๑๓", "part": "ภาค ๑", "chapter": "ลักษณะ ๑ หลักทั่วไป", "section": "หมวด ๓ อำนาจศาล", "text": "บทบัญญัติในหมวดนี้ ไม่ตัดอำนาจศาลที่จะพิจารณาพิพากษาคดีนอกเขตของตน ในกรณีที่กฎหมายอื่นบัญญัติให้ศาลนั้นมีอำนาจเช่นนั้น"},
+{"num": "๑๔", "part": "ภาค ๑", "chapter": "ลักษณะ ๒ การชันสูตรพลิกศพ", "section": "", "text": "เมื่อปรากฏว่ามีการตายโดยผิดธรรมชาติ หรือตายในระหว่างอยู่ในความควบคุมของเจ้าพนักงาน ให้มีการชันสูตรพลิกศพ\nการตายโดยผิดธรรมชาติ คือ\n(๑) ฆ่าตัวตาย\n(๒) ถูกผู้อื่นกระทำให้ตาย\n(๓) ถูกสัตว์ทำร้ายตาย\n(๔) ตายโดยอุบัติเหตุ\n(๕) ตายโดยยังไม่ปรากฏเหตุ"},
+{"num": "๑๕", "part": "ภาค ๑", "chapter": "ลักษณะ ๒ การชันสูตรพลิกศพ", "section": "", "text": "ให้พนักงานสอบสวนและแพทย์ผู้มีคุณวุฒิเป็นผู้ทำการชันสูตรพลิกศพ และในกรณีที่ตายในระหว่างอยู่ในความควบคุมของเจ้าพนักงาน ให้พนักงานอัยการเข้าร่วมในการชันสูตรพลิกศพด้วย"},
+{"num": "๑๖", "part": "ภาค ๑", "chapter": "ลักษณะ ๒ การชันสูตรพลิกศพ", "section": "", "text": "การชันสูตรพลิกศพให้กระทำ ณ สถานที่ที่พบศพหรือ ณ สถานที่อื่นตามที่เห็นสมควร"},
+{"num": "๑๗", "part": "ภาค ๑", "chapter": "ลักษณะ ๒ การชันสูตรพลิกศพ", "section": "", "text": "เมื่อได้ทำการชันสูตรพลิกศพแล้ว ให้ทำรายงานการชันสูตรพลิกศพขึ้นไว้หนึ่งฉบับ ลงชื่อผู้ทำการชันสูตรพลิกศพทุกคน"},
+{"num": "๑๘", "part": "ภาค ๑", "chapter": "ลักษณะ ๒ การชันสูตรพลิกศพ", "section": "", "text": "ให้พนักงานสอบสวนส่งรายงานการชันสูตรพลิกศพพร้อมสำนวนการสอบสวนไปยังพนักงานอัยการภายในสามสิบวันนับแต่วันทำการชันสูตรพลิกศพเสร็จ"},
+{"num": "๒๘", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๑ การฟ้องคดีอาญา", "text": "บุคคลเหล่านี้มีอำนาจฟ้องคดีอาญาต่อศาล คือ\n(๑) พนักงานอัยการ\n(๒) ผู้เสียหาย"},
+{"num": "๒๙", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๑ การฟ้องคดีอาญา", "text": "คดีอาญาใดซึ่งพนักงานอัยการยื่นฟ้องต่อศาลแล้ว ผู้เสียหายจะยื่นคำร้องขอเข้าร่วมเป็นโจทก์ในระยะใดระหว่างพิจารณาก็ได้ แต่ต้องก่อนศาลชั้นต้นพิพากษาคดี"},
+{"num": "๓๐", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๑ การฟ้องคดีอาญา", "text": "คดีใดซึ่งพนักงานอัยการและผู้เสียหายเป็นโจทก์ร่วมกัน ถ้าพนักงานอัยการถอนฟ้องหรือทิ้งฟ้อง ผู้เสียหายจะดำเนินคดีต่อไปก็ได้"},
+{"num": "๓๑", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๑ การฟ้องคดีอาญา", "text": "คดีอาญาใดซึ่งเป็นคดีที่ยอมความกันได้และผู้เสียหายยื่นฟ้องเอง ผู้เสียหายจะถอนฟ้องหรือยอมความในเวลาใดก่อนมีคำพิพากษาของศาลอุทธรณ์ก็ได้"},
+{"num": "๓๒", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๑ การฟ้องคดีอาญา", "text": "ในคดีที่ยอมความกันได้ เมื่อผู้เสียหายได้ยื่นฟ้องแล้ว ผู้เสียหายจะมอบคดีให้พนักงานอัยการดำเนินการต่อไปก็ได้"},
+{"num": "๓๓", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๑ การฟ้องคดีอาญา", "text": "ในคดีอาญาที่เป็นความผิดต่อส่วนตัว การถอนคำร้องทุกข์ การถอนฟ้องหรือยอมความในคดีส่วนอาญา ย่อมตัดสิทธิ์การนำคดีส่วนแพ่งขึ้นสู่ศาลอีกด้วย"},
+{"num": "๓๗", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๒ คำร้องทุกข์", "text": "คำร้องทุกข์ให้แจ้งต่อพนักงานสอบสวน แต่ถ้าความผิดเกิดในกรุงเทพมหานครจะแจ้งต่อพนักงานฝ่ายปกครองหรือตำรวจก็ได้"},
+{"num": "๓๘", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๒ คำร้องทุกข์", "text": "คำร้องทุกข์นั้นจะทำเป็นหนังสือหรือร้องด้วยปากก็ได้ ในกรณีที่ร้องด้วยปาก ให้เจ้าพนักงานบันทึกไว้"},
+{"num": "๓๙", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๒ คำร้องทุกข์", "text": "ในคดีความผิดต่อส่วนตัว ถ้าผู้เสียหายตาย เพราะเหตุที่ถูกกระทำความผิดนั้นก็ดี หรือถ้าผู้เสียหายเป็นผู้เยาว์ หรือมีจิตฟั่นเฟือนไม่สมประกอบ หรือเป็นผู้ไร้ความสามารถ หรือเป็นผู้หย่อนความสามารถอันไม่สามารถจะจัดการได้เองก็ดี บุคคลต่อไปนี้ มีอำนาจร้องทุกข์ได้ คือ\n(๑) ผู้บุพการี ผู้สืบสันดาน สามีหรือภริยาของผู้เสียหาย\n(๒) ผู้แทนโดยชอบธรรม ผู้อนุบาล"},
+{"num": "๔๐", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๒ คำร้องทุกข์", "text": "การร้องทุกข์ของผู้เยาว์ต้องได้รับความยินยอมของผู้แทนโดยชอบธรรมก่อน เว้นแต่ผู้แทนโดยชอบธรรมเป็นผู้กระทำความผิดเสียเอง"},
+{"num": "๔๑", "part": "ภาค ๑", "chapter": "ลักษณะ ๓ การฟ้องคดีและการสอบสวน", "section": "หมวด ๒ คำร้องทุกข์", "text": "ผู้เสียหายจะแต่งตั้งผู้แทนเฉพาะคดีเพื่อร้องทุกข์แทนตนก็ได้"},
+{"num": "๕๖", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๑ การจับ", "text": "พนักงานสอบสวนหรือพนักงานฝ่ายปกครองหรือตำรวจมีอำนาจออกหมายจับได้ในกรณีที่มีหลักฐานตามสมควรว่าบุคคลใดน่าจะได้กระทำความผิดอาญา และเมื่อมีเหตุอันควรเชื่อว่าจะหลบหนี หรือจะไปยุ่งเหยิงกับพยานหลักฐาน หรือก่อเหตุอันตรายประการอื่น"},
+{"num": "๕๗", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๑ การจับ", "text": "ภายใต้บังคับมาตรา ๕๘ การจับผู้ต้องหาหรือจำเลย พนักงานฝ่ายปกครองหรือตำรวจต้องมีหมายจับหรือคำสั่งของศาล"},
+{"num": "๕๘", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๑ การจับ", "text": "พนักงานฝ่ายปกครองหรือตำรวจจะจับผู้ใดโดยไม่มีหมายจับหรือคำสั่งของศาลได้ในกรณีดังต่อไปนี้\n(๑) เมื่อบุคคลนั้นได้กระทำความผิดซึ่งหน้า\n(๒) เมื่อพบบุคคลโดยมีพฤติการณ์อันควรสงสัยว่าผู้นั้นน่าจะก่อเหตุร้ายให้เกิดภยันตรายแก่บุคคลหรือทรัพย์สินของผู้อื่น\n(๓) เมื่อมีเหตุที่จะออกหมายจับบุคคลนั้นตามมาตรา ๖๖ แต่มีความจำเป็นเร่งด่วนที่ไม่อาจขอให้ศาลออกหมายจับได้ทัน"},
+{"num": "๕๙", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๑ การจับ", "text": "ราษฎรจะจับผู้อื่นได้ในกรณีดังต่อไปนี้\n(๑) เมื่อบุคคลนั้นได้กระทำความผิดซึ่งหน้า และความผิดนั้นเป็นความผิดอาญา\n(๒) เมื่อบุคคลนั้นหลบหนีการจับของเจ้าพนักงาน"},
+{"num": "๖๐", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๑ การจับ", "text": "ผู้ถูกจับต้องถูกนำตัวไปยังที่ทำการของพนักงานสอบสวนแห่งท้องที่ที่ถูกจับโดยเร็ว"},
+{"num": "๖๑", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๑ การจับ", "text": "เมื่อจับแล้ว ให้แจ้งแก่ผู้ถูกจับทราบถึงข้อกล่าวหาและสิทธิที่จะให้ทนายความหรือผู้ซึ่งตนไว้วางใจเข้าฟังการสอบสวนปากคำตนได้ทันที"},
+{"num": "๖๙", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๒ การค้น", "text": "การค้นในที่รโหฐาน ต้องมีหมายค้นหรือคำสั่งของศาล เว้นแต่พฤติการณ์แห่งคดีมีความจำเป็นเร่งด่วน"},
+{"num": "๗๐", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๒ การค้น", "text": "หมายค้นให้ระบุสถานที่ที่จะค้น บุคคลหรือสิ่งของที่ต้องการ และในกรณีที่ต้องการจับ ให้ระบุชื่อและรูปพรรณของบุคคลที่ต้องการจับด้วย"},
+{"num": "๗๑", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๒ การค้น", "text": "การค้นในที่รโหฐาน ต้องกระทำระหว่างเวลาพระอาทิตย์ขึ้นถึงพระอาทิตย์ตก เว้นแต่ในกรณีดังต่อไปนี้ จะค้นในเวลากลางคืนได้ คือ การค้นนั้นได้เริ่มในเวลากลางวัน แต่ยังทำไม่เสร็จ จึงจำเป็นต้องทำต่อไปในเวลากลางคืน หรือได้รับอนุญาตพิเศษจากศาลให้ค้นในเวลากลางคืนได้"},
+{"num": "๗๒", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๒ การค้น", "text": "ก่อนค้น เจ้าพนักงานต้องแสดงหมายค้นหรือคำสั่งของศาลต่อบุคคลที่อยู่ในสถานที่จะค้นนั้น และขอให้เข้าร่วมสังเกตการณ์ด้วย"},
+{"num": "๗๓", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๒ การค้น", "text": "การค้นตัวบุคคลในที่สาธารณะ เจ้าพนักงานมีอำนาจกระทำได้เมื่อมีเหตุอันควรสงสัยตามสมควรว่าบุคคลนั้นมีสิ่งของที่มีไว้เป็นความผิด หรือได้มาโดยการกระทำความผิด หรือได้ใช้หรือจะใช้ในการกระทำความผิดหรือซึ่งจะเป็นประโยชน์แก่การพิสูจน์ความผิด"},
+{"num": "๘๙", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๓ ปล่อยชั่วคราว", "text": "ผู้ต้องหาหรือจำเลยซึ่งถูกควบคุมหรือขังอยู่ ผู้ต้องหาหรือจำเลยนั้น บุคคลอื่นใด หรือพนักงานอัยการ จะยื่นคำร้องต่อพนักงานสอบสวนหรือศาลเพื่อให้ปล่อยชั่วคราวก็ได้"},
+{"num": "๙๐", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๓ ปล่อยชั่วคราว", "text": "เมื่อมีคำร้องขอปล่อยชั่วคราว ให้พนักงานสอบสวนหรือศาลสั่งอนุญาตหรือไม่อนุญาตปล่อยชั่วคราวก็ได้ แต่ต้องมีเหตุผลในคำสั่งนั้น"},
+{"num": "๑๐๗", "part": "ภาค ๑", "chapter": "ลักษณะ ๔ จับ ขัง จำคุก ค้น", "section": "หมวด ๓ ปล่อยชั่วคราว", "text": "ในกรณีที่ผู้ต้องหาหรือจำเลยได้รับอนุญาตให้ปล่อยชั่วคราว ผู้ต้องหาหรือจำเลยต้องมาตามนัด มิฉะนั้น ศาลมีอำนาจออกหมายจับผู้ต้องหาหรือจำเลยได้"},
+{"num": "๑๒๐", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๑ หลักทั่วไป", "text": "ห้ามมิให้พนักงานอัยการยื่นฟ้องคดีใดต่อศาล โดยมิได้มีการสอบสวนในความผิดนั้นก่อน"},
+{"num": "๑๒๑", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๑ หลักทั่วไป", "text": "พนักงานสอบสวนมีอำนาจสอบสวนคดีอาญาทั้งปวง ซึ่งเกิดขึ้น หรืออ้างว่าเกิดขึ้นในเขตอำนาจของตน"},
+{"num": "๑๒๒", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๑ หลักทั่วไป", "text": "เพื่อปฏิบัติการตามอำนาจและหน้าที่ ให้พนักงานสอบสวนมีอำนาจดังต่อไปนี้\n(๑) ออกหมายเรียกผู้ต้องหา ผู้เสียหาย พยานและผู้เชี่ยวชาญมาทำการสอบสวน\n(๒) ออกหมายเรียกเอกสารหรือสิ่งของที่จำเป็นแก่คดีมาตรวจ\n(๓) ค้นตามที่บัญญัติไว้ในประมวลกฎหมายนี้"},
+{"num": "๑๒๓", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๒ การสอบสวนปากคำ", "text": "ให้พนักงานสอบสวนสอบปากคำผู้ต้องหา ผู้เสียหาย และพยาน"},
+{"num": "๑๒๔", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๒ การสอบสวนปากคำ", "text": "การสอบสวนต้องกระทำต่อหน้าพนักงานสอบสวนซึ่งมีอำนาจสอบสวนคนหนึ่งหรือหลายคน"},
+{"num": "๑๒๕", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๒ การสอบสวนปากคำ", "text": "ให้จดบันทึกการสอบสวนไว้ในบันทึกการสอบสวน แล้วอ่านให้ผู้ให้การฟัง ถ้าผู้นั้นรับรองว่าถูกต้อง ให้ลงลายมือชื่อหรือลายพิมพ์นิ้วมือไว้"},
+{"num": "๑๒๖", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๒ การสอบสวนปากคำ", "text": "การสอบสวนผู้ต้องหา ให้แจ้งข้อหาแก่ผู้ต้องหาก่อน และให้โอกาสผู้ต้องหาแก้ข้อหาและแสดงข้อเท็จจริงต่าง ๆ อันเป็นประโยชน์แก่ตน"},
+{"num": "๑๓๓", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๓ การสั่งคดี", "text": "เมื่อพนักงานสอบสวนเห็นว่าการสอบสวนเสร็จสิ้นแล้ว ให้ทำความเห็นว่าควรสั่งฟ้องหรือสั่งไม่ฟ้อง แล้วส่งสำนวนการสอบสวนพร้อมกับความเห็นนั้นไปยังพนักงานอัยการ"},
+{"num": "๑๓๔", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๓ การสั่งคดี", "text": "พนักงานสอบสวนมีอำนาจออกหมายเรียกให้บุคคลซึ่งถูกกล่าวหาว่ากระทำความผิดมารับทราบข้อกล่าวหาและให้การ"},
+{"num": "๑๔๐", "part": "ภาค ๒", "chapter": "การสอบสวน", "section": "หมวด ๓ การสั่งคดี", "text": "ในคดีความผิดที่ผู้เสียหายต้องร้องทุกข์จึงดำเนินคดีได้ ถ้าผู้เสียหายไม่ร้องทุกข์ภายในกำหนดระยะเวลาที่กฎหมายบัญญัติไว้ คดีนั้นเป็นอันขาดอายุความ"},
+{"num": "๑๕๗", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๑ โจทก์ฟ้องคดี", "text": "คดีอาญาทั้งปวงต้องนำมาสู่ศาลโดยคำฟ้องของพนักงานอัยการหรือผู้เสียหาย แต่ในคดีซึ่งราษฎรเป็นโจทก์ ศาลจะไต่สวนมูลฟ้องก่อนก็ได้"},
+{"num": "๑๕๘", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๑ โจทก์ฟ้องคดี", "text": "ฟ้องต้องทำเป็นหนังสือ และมี\n(๑) ชื่อศาลและวันเดือนปีที่ยื่นฟ้อง\n(๒) คดีระหว่างผู้ใดโจทก์ ผู้ใดจำเลย\n(๓) ตำแหน่งพนักงานอัยการ ถ้าอัยการเป็นโจทก์\n(๔) ข้อหาหรือฐานความผิดและรายละเอียดที่เกี่ยวกับเวลาและสถานที่ซึ่งเกิดการกระทำผิดอีกทั้งบุคคลหรือสิ่งของที่เกี่ยวข้องพอสมควรเท่าที่จะให้จำเลยเข้าใจข้อหาได้ดี\n(๕) อ้างมาตราในกฎหมายซึ่งบัญญัติว่าการกระทำเช่นนั้นเป็นความผิด"},
+{"num": "๑๕๙", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๑ โจทก์ฟ้องคดี", "text": "ข้อความในฟ้องที่ไม่ถูกต้อง จะแก้ไขหรือเพิ่มเติมได้ต่อเมื่อได้รับอนุญาตจากศาล"},
+{"num": "๑๖๐", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๑ โจทก์ฟ้องคดี", "text": "ถ้าฟ้องไม่ถูกต้องตามกฎหมาย ศาลมีอำนาจสั่งให้โจทก์แก้ฟ้องหรือยกฟ้องเสียก็ได้"},
+{"num": "๑๖๑", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๑ โจทก์ฟ้องคดี", "text": "โจทก์มีสิทธิถอนฟ้องในเวลาใดก่อนมีคำพิพากษา แต่ถ้าจำเลยคัดค้านศาลจะไม่อนุญาตก็ได้"},
+{"num": "๑๖๒", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๑ โจทก์ฟ้องคดี", "text": "การที่โจทก์ทิ้งฟ้อง ให้ถือว่าคดีนั้นเสมือนมิได้มีการยื่นฟ้องเลย"},
+{"num": "๑๖๓", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๒ ไต่สวนมูลฟ้อง", "text": "การไต่สวนมูลฟ้อง ให้ศาลสืบพยานโจทก์ไปฝ่ายเดียวก่อน เมื่อศาลเห็นว่าคดีมีมูลก็ให้ประทับรับฟ้องไว้พิจารณา"},
+{"num": "๑๖๔", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๒ ไต่สวนมูลฟ้อง", "text": "ถ้าศาลเห็นว่าคดีไม่มีมูล ให้ยกฟ้อง ในกรณีเช่นนี้ ห้ามมิให้โจทก์ยื่นฟ้องในเรื่องเดียวกันอีก แต่ไม่ตัดสิทธิ์พนักงานอัยการ"},
+{"num": "๑๖๕", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๓ พิจารณา", "text": "ก่อนเริ่มพิจารณา ให้ศาลถามจำเลยว่ามีทนายความหรือไม่ ถ้าไม่มีและจำเลยต้องการ ให้ศาลตั้งทนายความให้"},
+{"num": "๑๖๗", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๓ พิจารณา", "text": "ถ้าจำเลยหลบหนีในระหว่างพิจารณา ให้ศาลออกหมายจับจำเลย และถ้าจำเลยยังหลบหนีอยู่จนถึงเวลาที่ศาลเห็นสมควรจะพิพากษา ศาลมีอำนาจพิจารณาคดีโดยไม่ต้องรอจำเลยได้ในคดีที่กฎหมายกำหนด"},
+{"num": "๑๗๒", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๓ พิจารณา", "text": "การพิจารณาและการสืบพยานในศาลให้กระทำโดยเปิดเผยต่อหน้าจำเลย เว้นแต่บัญญัติไว้เป็นอย่างอื่น"},
+{"num": "๑๗๓", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๓ พิจารณา", "text": "จำเลยมีสิทธิให้ทนายความหรือตัวแทนถามค้านพยานโจทก์ และนำพยานเข้าสืบแก้"},
+{"num": "๑๗๔", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๓ พิจารณา", "text": "จำเลยมีสิทธิที่จะให้การหรือไม่ให้การในชั้นพิจารณาก็ได้ ถ้าจำเลยไม่ยอมให้การ ห้ามมิให้ถือว่าเป็นการยืนยันข้อเท็จจริงตามฟ้องหรือเป็นผลเสียแก่จำเลย"},
+{"num": "๑๗๕", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๓ พิจารณา", "text": "ถ้าจำเลยให้การรับสารภาพ ศาลจะพิพากษาโดยไม่สืบพยานก็ได้ แต่ถ้าเป็นความผิดที่มีอัตราโทษสูงตามกฎหมาย ศาลต้องสืบพยานประกอบ"},
+{"num": "๑๘๕", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๔ คำพิพากษาและคำสั่ง", "text": "ในการพิพากษาคดี ให้ศาลใช้ดุลพินิจจากพยานหลักฐานที่ปรากฏในการพิจารณาทั้งสิ้น"},
+{"num": "๑๘๖", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๔ คำพิพากษาและคำสั่ง", "text": "คำพิพากษาต้องมี\n(๑) วันที่พิพากษา\n(๒) ชื่อโจทก์และจำเลย\n(๓) คดีที่ฟ้อง\n(๔) ข้อเท็จจริงและข้อกฎหมายที่อ้างอิง\n(๕) คำสั่งของศาล"},
+{"num": "๑๘๗", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๔ คำพิพากษาและคำสั่ง", "text": "ถ้าศาลเห็นว่าจำเลยมีความผิด ให้ศาลลงโทษตามกฎหมาย แต่ต้องไม่ลงโทษหนักกว่าที่โจทก์ขอในคำขอท้ายฟ้อง"},
+{"num": "๑๘๘", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๔ คำพิพากษาและคำสั่ง", "text": "ถ้าศาลเห็นว่าจำเลยไม่มีความผิดตามฟ้อง ให้ยกฟ้องและปล่อยจำเลยไป"},
+{"num": "๑๘๙", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๔ คำพิพากษาและคำสั่ง", "text": "คำพิพากษาของศาลจะเปลี่ยนแปลงแก้ไขมิได้ เว้นแต่ศาลจะมีอำนาจแก้ไขข้อผิดพลาดเล็กน้อยได้"},
+{"num": "๑๙๐", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๔ คำพิพากษาและคำสั่ง", "text": "ห้ามมิให้พิพากษาหรือสั่งเกินไปกว่าหรือนอกจากที่ปรากฏในคำฟ้อง"},
+{"num": "๑๙๑", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๔ คำพิพากษาและคำสั่ง", "text": "ถ้าศาลเห็นว่าการกระทำของจำเลยเป็นความผิดกรรมเดียวหรือหลายกรรม ให้ลงโทษฐานความผิดที่มีโทษหนักที่สุดกรรมเดียว"},
+{"num": "๑๙๒", "part": "ภาค ๓", "chapter": "วิธีพิจารณาในศาลชั้นต้น", "section": "หมวด ๔ คำพิพากษาและคำสั่ง", "text": "คดีอาญาเรื่องเดียวกันจะฟ้องจำเลยซ้ำอีกไม่ได้"},
+{"num": "๑๙๓", "part": "ภาค ๔", "chapter": "อุทธรณ์และฎีกา", "section": "หมวด ๑ อุทธรณ์", "text": "คดีที่ศาลชั้นต้นได้พิพากษาแล้ว คู่ความมีอำนาจอุทธรณ์คำพิพากษาหรือคำสั่งนั้นได้ ภายในกำหนดหนึ่งเดือนนับแต่วันอ่านหรือถือว่าได้อ่านคำพิพากษาหรือคำสั่งนั้น เว้นแต่จะมีบทบัญญัติกฎหมายเป็นการเฉพาะ"},
+{"num": "๑๙๔", "part": "ภาค ๔", "chapter": "อุทธรณ์และฎีกา", "section": "หมวด ๑ อุทธรณ์", "text": "ในคดีที่ศาลชั้นต้นพิพากษาลงโทษจำคุกไม่เกินสองปี หรือปรับไม่เกินสี่หมื่นบาท หรือทั้งจำทั้งปรับ ห้ามมิให้คู่ความอุทธรณ์ในปัญหาข้อเท็จจริง"},
+{"num": "๑๙๕", "part": "ภาค ๔", "chapter": "อุทธรณ์และฎีกา", "section": "หมวด ๑ อุทธรณ์", "text": "อุทธรณ์ต้องทำเป็นหนังสือ ยื่นต่อศาลชั้นต้นซึ่งมีคำพิพากษาหรือคำสั่งนั้นภายในกำหนดหนึ่งเดือนนับแต่วันอ่านคำพิพากษาหรือคำสั่ง"},
+{"num": "๒๑๒", "part": "ภาค ๔", "chapter": "อุทธรณ์และฎีกา", "section": "หมวด ๑ อุทธรณ์", "text": "เมื่อศาลอุทธรณ์ได้รับสำนวนคดีแล้ว ให้พิจารณาพิพากษาโดยเร็ว"},
+{"num": "๒๑๓", "part": "ภาค ๔", "chapter": "อุทธรณ์และฎีกา", "section": "หมวด ๑ อุทธรณ์", "text": "คำพิพากษาหรือคำสั่งของศาลอุทธรณ์ให้อ่านในศาลอุทธรณ์ โดยไม่จำต้องมีคู่ความมาฟัง"},
+{"num": "๒๑๖", "part": "ภาค ๔", "chapter": "อุทธรณ์และฎีกา", "section": "หมวด ๒ ฎีกา", "text": "คู่ความมีอำนาจฎีกาคำพิพากษาหรือคำสั่งของศาลอุทธรณ์ได้ตามบทบัญญัติในหมวดนี้"},
+{"num": "๒๑๘", "part": "ภาค ๔", "chapter": "อุทธรณ์และฎีกา", "section": "หมวด ๒ ฎีกา", "text": "ในคดีที่ศาลอุทธรณ์พิพากษายืนตามศาลล่าง หรือพิพากษาแก้ไขเล็กน้อยในคดีซึ่งศาลชั้นต้นพิพากษาลงโทษจำคุกไม่เกินสองปี ห้ามมิให้ฎีกาในปัญหาข้อเท็จจริง เว้นแต่ผู้พิพากษาซึ่งพิจารณาหรืออนุญาตให้ฎีกา"},
+{"num": "๒๒๑", "part": "ภาค ๔", "chapter": "อุทธรณ์และฎีกา", "section": "หมวด ๒ ฎีกา", "text": "ฎีกาต้องทำเป็นหนังสือ ยื่นต่อศาลชั้นต้นซึ่งมีคำพิพากษาหรือคำสั่งนั้นภายในกำหนดหนึ่งเดือนนับแต่วันอ่านคำพิพากษาหรือคำสั่งของศาลอุทธรณ์"},
+{"num": "๒๒๖", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๑ หลักทั่วไป", "text": "พยานวัตถุ พยานเอกสาร หรือพยานบุคคลซึ่งน่าจะพิสูจน์ได้ว่าจำเลยมีผิดหรือบริสุทธิ์ ให้อ้างเป็นพยานหลักฐานได้\nแต่ต้องเป็นพยานชนิดที่มิได้เกิดขึ้นจากการจูงใจ มีคำมั่นสัญญา ขู่เข็ญ หลอกลวง หรือโดยมิชอบประการอื่น และให้สืบพยานหลักฐานในศาลต่อหน้าจำเลย เว้นแต่บัญญัติไว้เป็นอย่างอื่น"},
+{"num": "๒๒๗", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๑ หลักทั่วไป", "text": "ให้ศาลใช้ดุลพินิจวินิจฉัยชั่งน้ำหนักพยานหลักฐานทั้งปวง แต่ห้ามมิให้พิพากษาลงโทษจำเลยโดยอาศัยพยานบอกเล่าเพียงอย่างเดียว เว้นแต่จะประกอบด้วยพยานหลักฐานอื่น"},
+{"num": "๒๒๗/๑", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๑ หลักทั่วไป", "text": "พยานหลักฐานที่ได้มาโดยมิชอบ ศาลอาจรับฟังหรือไม่รับฟังเพื่อพิสูจน์ข้อเท็จจริงได้ โดยคำนึงถึงพฤติการณ์ทั้งปวง"},
+{"num": "๒๒๘", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๑ หลักทั่วไป", "text": "ห้ามมิให้โจทก์อ้างพยานเพิ่มเติมหลังจากที่ได้สืบพยานโจทก์เสร็จแล้ว เว้นแต่ศาลจะอนุญาต"},
+{"num": "๒๓๒", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๒ พยานเอกสาร", "text": "พยานเอกสารในส่วนที่เกี่ยวกับคดีอาญา ถ้าเป็นเอกสารที่เจ้าพนักงานได้ทำขึ้นในหน้าที่ ให้สันนิษฐานไว้ก่อนว่าเป็นของจริงแท้และถูกต้อง"},
+{"num": "๒๓๗", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๓ พยานบุคคล", "text": "ให้สืบพยานบุคคลในศาลต่อหน้าจำเลย เว้นแต่ศาลเห็นสมควรให้สืบพยานนอกศาลก็ได้"},
+{"num": "๒๓๘", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๓ พยานบุคคล", "text": "ในระหว่างสืบพยาน ให้ผู้พิพากษาซึ่งนั่งพิจารณามีอำนาจถามพยานในข้อที่เห็นสมควรได้"},
+{"num": "๒๔๒", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๓ พยานบุคคล", "text": "เมื่อสืบพยานทุกฝ่ายเสร็จแล้ว ให้คู่ความแถลงการณ์ปิดคดี"},
+{"num": "๒๔๓", "part": "ภาค ๕", "chapter": "พยานหลักฐาน", "section": "หมวด ๓ พยานบุคคล", "text": "ในกรณีที่มีเหตุสมควร ศาลมีอำนาจสั่งให้สืบพยานหลักฐานใหม่ได้"},
+{"num": "๒๔๕", "part": "ภาค ๖", "chapter": "การบังคับตามคำพิพากษาและค่าธรรมเนียม", "section": "หมวด ๑ การบังคับตามคำพิพากษา", "text": "เมื่อคดีถึงที่สุดแล้ว ให้บังคับตามคำพิพากษา"},
+{"num": "๒๔๖", "part": "ภาค ๖", "chapter": "การบังคับตามคำพิพากษาและค่าธรรมเนียม", "section": "หมวด ๑ การบังคับตามคำพิพากษา", "text": "ถ้าคำพิพากษาให้จำคุก ให้ส่งตัวจำเลยไปยังเรือนจำหรือสถานที่ที่กำหนดโดยเร็ว"},
+{"num": "๒๔๗", "part": "ภาค ๖", "chapter": "การบังคับตามคำพิพากษาและค่าธรรมเนียม", "section": "หมวด ๑ การบังคับตามคำพิพากษา", "text": "ในกรณีที่ศาลพิพากษาให้ปรับ ให้พนักงานอัยการหรือเจ้าพนักงานผู้มีหน้าที่บังคับให้จำเลยชำระเงินค่าปรับ"},
+{"num": "๒๕๐", "part": "ภาค ๖", "chapter": "การบังคับตามคำพิพากษาและค่าธรรมเนียม", "section": "หมวด ๑ การบังคับตามคำพิพากษา", "text": "ทรัพย์สินที่ศาลสั่งให้ริบให้ตกเป็นของแผ่นดิน"},
+{"num": "๒๕๓", "part": "ภาค ๖", "chapter": "การบังคับตามคำพิพากษาและค่าธรรมเนียม", "section": "หมวด ๒ ค่าธรรมเนียม", "text": "ค่าธรรมเนียมในคดีอาญาให้เป็นไปตามที่กำหนดในกฎหมายว่าด้วยค่าธรรมเนียมศาล"},
+{"num": "๒๕๘", "part": "ภาค ๖", "chapter": "การบังคับตามคำพิพากษาและค่าธรรมเนียม", "section": "หมวด ๒ ค่าธรรมเนียม", "text": "ในคดีที่พนักงานอัยการเป็นโจทก์ ไม่ต้องเสียค่าธรรมเนียมศาล"},
+{"num": "๒๕๙", "part": "ภาค ๗", "chapter": "อภัยโทษ เปลี่ยนโทษหนักเป็นโทษเบาและลดโทษ", "section": "", "text": "การขอพระราชทานอภัยโทษ เปลี่ยนโทษหนักเป็นโทษเบา หรือลดโทษ ให้กระทำดังที่บัญญัติไว้ในประมวลกฎหมายนี้"},
+{"num": "๒๖๐", "part": "ภาค ๗", "chapter": "อภัยโทษ เปลี่ยนโทษหนักเป็นโทษเบาและลดโทษ", "section": "", "text": "ผู้ต้องโทษอาญาหรือผู้แทน หรือพนักงานอัยการมีสิทธิยื่นเรื่องขอพระราชทานอภัยโทษ"},
+{"num": "๒๖๑", "part": "ภาค ๗", "chapter": "อภัยโทษ เปลี่ยนโทษหนักเป็นโทษเบาและลดโทษ", "section": "", "text": "การขอพระราชทานอภัยโทษยื่นได้เสมอ เว้นแต่ในกรณีที่เคยได้รับพระราชทานอภัยโทษในคดีเดียวกันมาแล้ว"},
+{"num": "๒๖๒", "part": "ภาค ๗", "chapter": "อภัยโทษ เปลี่ยนโทษหนักเป็นโทษเบาและลดโทษ", "section": "", "text": "ในระหว่างที่เรื่องขอพระราชทานอภัยโทษอยู่ในระหว่างพิจารณา ให้งดการบังคับตามคำพิพากษาไว้ก่อน"},
+{"num": "๒๖๓", "part": "ภาค ๗", "chapter": "อภัยโทษ เปลี่ยนโทษหนักเป็นโทษเบาและลดโทษ", "section": "", "text": "เมื่อได้รับพระราชทานอภัยโทษแล้ว ให้ปล่อยตัวผู้ต้องโทษหรือลดโทษตามพระราชประสงค์"},
+{"num": "๒๖๗", "part": "ภาค ๗", "chapter": "อภัยโทษ เปลี่ยนโทษหนักเป็นโทษเบาและลดโทษ", "section": "", "text": "ถ้าผู้ต้องโทษตายในระหว่างขอพระราชทานอภัยโทษ ให้งดการพิจารณาคำขอนั้นเสีย"},
+];
+</script>
+
+<!-- ── APP LOGIC ── -->
+<script>
+const SK_EDIT='cpc_edits', SK_NOTE='cpc_notes', SK_THEME='cpc_theme';
+let userEdits={}, userNotes={}, curQ='', curTheme='dark';
+
+// ── Init ──
+function init(){
+  try{userEdits=JSON.parse(localStorage.getItem(SK_EDIT)||'{}')}catch(e){userEdits={}}
+  try{userNotes=JSON.parse(localStorage.getItem(SK_NOTE)||'{}')}catch(e){userNotes={}}
+  const saved=localStorage.getItem(SK_THEME)||'dark';
+  applyTheme(saved,false);
+  buildSidebar();
+  renderArticles(D);
+  setupScrollFab();
+  // desktop: keep sidebar open; mobile: close by default
+  if(window.innerWidth<=700) document.getElementById('app').classList.remove('sidebar-open');
+}
+
+function saveEdits(){localStorage.setItem(SK_EDIT,JSON.stringify(userEdits))}
+function saveNotes(){localStorage.setItem(SK_NOTE,JSON.stringify(userNotes))}
+
+// ── Theme ──
+function toggleTheme(){
+  applyTheme(curTheme==='dark'?'light':'dark',true);
+}
+function applyTheme(t,save){
+  curTheme=t;
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('meta-theme').content=t==='dark'?'#060a12':'#ffffff';
+  document.getElementById('theme-btn').textContent=t==='dark'?'🌙 Dark':'☀️ Light';
+  if(save) localStorage.setItem(SK_THEME,t);
+}
+
+// ── Sidebar toggle ──
+function toggleSidebar(){
+  const app=document.getElementById('app');
+  if(window.innerWidth<=700){
+    app.classList.toggle('sidebar-open');
+    document.getElementById('overlay').style.opacity=app.classList.contains('sidebar-open')?'1':'0';
+    document.getElementById('overlay').style.pointerEvents=app.classList.contains('sidebar-open')?'all':'none';
+  } else {
+    app.classList.toggle('sidebar-collapsed');
+  }
+}
+function closeSidebar(){
+  const app=document.getElementById('app');
+  app.classList.remove('sidebar-open');
+  document.getElementById('overlay').style.opacity='0';
+  document.getElementById('overlay').style.pointerEvents='none';
+}
+
+// ── Build Sidebar Tree ──
+// Structure: ภาค > ลักษณะ/chapter > หมวด/section > มาตรา
+function buildSidebar(){
+  // Build hierarchy
+  const tree=[]; // [{part, chapters:[{chapter, sections:[{section, articles:[]}]}]}]
+  const partMap=new Map(), chapMap=new Map(), sectMap=new Map();
+
+  D.forEach(a=>{
+    const pk=a.part;
+    const ck=a.part+'|'+a.chapter;
+    const sk=a.part+'|'+a.chapter+'|'+a.section;
+
+    if(!partMap.has(pk)){
+      const node={part:a.part,chapters:[],_cmap:new Map()};
+      partMap.set(pk,node); tree.push(node);
+    }
+    const partNode=partMap.get(pk);
+
+    if(!partNode._cmap.has(ck)){
+      const node={chapter:a.chapter,sections:[],_smap:new Map()};
+      partNode._cmap.set(ck,node); partNode.chapters.push(node);
+    }
+    const chapNode=partNode._cmap.get(ck);
+
+    if(!chapNode._smap.has(sk)){
+      const node={section:a.section,articles:[]};
+      chapNode._smap.set(sk,node); chapNode.sections.push(node);
+    }
+    chapNode._smap.get(sk).articles.push(a);
+  });
+
+  const ec=Object.keys(userEdits).length, nc=Object.keys(userNotes).filter(k=>userNotes[k]).length;
+  document.getElementById('sb-stats').textContent=`${D.length} มาตรา · แก้ไข ${ec} · บันทึก ${nc}`;
+  document.getElementById('hdr-sub').textContent=`${D.length} มาตรา · แก้ไข ${ec} · บันทึก ${nc}`;
+
+  const container=document.getElementById('sb-tree');
+  container.innerHTML='';
+
+  tree.forEach((partNode,pi)=>{
+    const partEl=document.createElement('div');
+    partEl.className='sb-part'+(pi===0?' open':'');
+    partEl.dataset.part=partNode.part;
+
+    let partHTML=`<div class="sb-part-hd" onclick="toggleNode(this.parentElement)">
+      <span>${esc(partNode.part)}</span>
+      <span class="arr">▶</span>
+    </div><div class="sb-part-children">`;
+
+    partNode.chapters.forEach(chapNode=>{
+      const hasMultiSect=chapNode.sections.length>1||(chapNode.sections.length===1&&chapNode.sections[0].section);
+      partHTML+=`<div class="sb-chapter open" data-chap="${esc(chapNode.chapter)}">
+        <div class="sb-chapter-hd" onclick="toggleNode(this.parentElement)">
+          <span>${esc(chapNode.chapter||partNode.part)}</span>
+          <span class="arr">▶</span>
+        </div>
+        <div class="sb-chapter-children">`;
+
+      chapNode.sections.forEach(sectNode=>{
+        if(sectNode.section){
+          partHTML+=`<div class="sb-section open" data-sect="${esc(sectNode.section)}">
+            <div class="sb-section-hd" onclick="toggleNode(this.parentElement)">
+              <span>${esc(sectNode.section)}</span>
+              <span class="arr">▶</span>
+            </div>
+            <div class="sb-section-children">`;
+          sectNode.articles.forEach(a=>{
+            const hn=userNotes[a.num]?'has-note':'', he=userEdits[a.num]?'has-edit':'';
+            partHTML+=`<div class="sb-link ${hn} ${he}" id="nav-${a.num}" onclick="scrollToArticle('${a.num}');closeSidebarMobile()">
+              <span class="dot-note"></span><span class="dot-edit"></span>มาตรา ${esc(a.num)}
+            </div>`;
+          });
+          partHTML+='</div></div>';
+        } else {
+          // no section: link directly under chapter
+          sectNode.articles.forEach(a=>{
+            const hn=userNotes[a.num]?'has-note':'', he=userEdits[a.num]?'has-edit':'';
+            partHTML+=`<div class="sb-link ${hn} ${he}" id="nav-${a.num}" onclick="scrollToArticle('${a.num}');closeSidebarMobile()">
+              <span class="dot-note"></span><span class="dot-edit"></span>มาตรา ${esc(a.num)}
+            </div>`;
+          });
+        }
+      });
+
+      partHTML+='</div></div>';
+    });
+
+    partHTML+='</div>';
+    partEl.innerHTML=partHTML;
+    container.appendChild(partEl);
+  });
+}
+
+function toggleNode(el){el.classList.toggle('open')}
+
+function closeSidebarMobile(){
+  if(window.innerWidth<=700) closeSidebar();
+}
+
+function refreshSidebarDots(){
+  D.forEach(a=>{
+    const link=document.getElementById('nav-'+a.num);
+    if(!link) return;
+    link.classList.toggle('has-note',!!(userNotes[a.num]&&userNotes[a.num].trim()));
+    link.classList.toggle('has-edit',!!userEdits[a.num]);
+  });
+  const ec=Object.keys(userEdits).length, nc=Object.keys(userNotes).filter(k=>userNotes[k]).length;
+  document.getElementById('sb-stats').textContent=`${D.length} มาตรา · แก้ไข ${ec} · บันทึก ${nc}`;
+  document.getElementById('hdr-sub').textContent=`${D.length} มาตรา · แก้ไข ${ec} · บันทึก ${nc}`;
+}
+
+// ── Sidebar search ──
+function onSbSearch(val){
+  val=val.trim();
+  document.getElementById('sb-xcl').style.display=val?'block':'none';
+  // filter visible links
+  const links=document.querySelectorAll('.sb-link');
+  if(!val){
+    links.forEach(l=>{l.style.display='';});
+    // restore tree visibility
+    document.querySelectorAll('.sb-section,.sb-chapter,.sb-part').forEach(el=>{
+      el.style.display='';
+    });
+    return;
+  }
+  const q=val.toLowerCase();
+  // hide/show links and their parents
+  document.querySelectorAll('.sb-section,.sb-chapter,.sb-part').forEach(el=>el.style.display='none');
+  links.forEach(l=>{
+    const txt=l.textContent.toLowerCase();
+    if(txt.includes(q)||l.id.replace('nav-','').includes(val)){
+      l.style.display='';
+      // show parent containers
+      let p=l.parentElement;
+      while(p){
+        if(p.classList.contains('sb-section')||p.classList.contains('sb-chapter')||p.classList.contains('sb-part')){
+          p.style.display=''; p.classList.add('open');
+          // show children containers inside
+          const ch=p.querySelector('.sb-section-children,.sb-chapter-children,.sb-part-children');
+          if(ch) ch.style.display='block';
+        }
+        p=p.parentElement;
+      }
+    } else {
+      l.style.display='none';
+    }
+  });
+}
+function clearSbSearch(){
+  document.getElementById('sb-sinput').value='';
+  document.getElementById('sb-xcl').style.display='none';
+  onSbSearch('');
+}
+
+// ── Render articles ──
+function getFiltered(){
+  if(!curQ) return D;
+  const q=curQ.toLowerCase();
+  return D.filter(a=>
+    a.num.includes(curQ)||
+    (userEdits[a.num]||a.text).toLowerCase().includes(q)||
+    a.part.toLowerCase().includes(q)||
+    a.chapter.toLowerCase().includes(q)||
+    a.section.toLowerCase().includes(q)
+  );
+}
+
+function hl(t,q){
+  if(!q) return esc(t);
+  const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+  return esc(t).replace(re,m=>`<mark>${m}</mark>`);
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function renderArticles(articles){
+  const container=document.getElementById('articles');
+  const empty=document.getElementById('empty-state');
+  if(!articles.length){container.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  document.getElementById('rcount').textContent=
+    curQ?`พบ ${articles.length} มาตรา · "${curQ}"`:
+    `${articles.length} มาตรา`;
+
+  let lastPart='', html='';
+  articles.forEach(a=>{
+    if(a.part!==lastPart){
+      html+=`<div class="part-divider">${esc(a.part)}</div>`;
+      lastPart=a.part;
+    }
+    const content=userEdits[a.num]??a.text;
+    const isEdited=!!userEdits[a.num];
+    const hasNote=!!(userNotes[a.num]&&userNotes[a.num].trim());
+    const crumb=[a.chapter,a.section].filter(Boolean).join(' › ');
+    html+=`
+    <div class="article-card fu ${hasNote?'has-note':''} ${isEdited?'has-edit':''}" id="card-${a.num}">
+      <div class="article-header">
+        <div>
+          <div class="article-num">มาตรา ${esc(a.num)}${isEdited?'<span class="edited-badge">แก้ไข</span>':''}</div>
+          <div class="article-breadcrumb">${esc(crumb)}</div>
+        </div>
+        <div class="article-tools">
+          <button class="tool-btn ${isEdited?'active':''}" id="edit-btn-${a.num}"
+            onclick="toggleEdit('${a.num}')" title="แก้ไขเนื้อหา">✏️</button>
+          <button class="tool-btn ${hasNote?'note-active':''}" id="note-btn-${a.num}"
+            onclick="toggleNote('${a.num}')" title="บันทึกข้อสังเกต">📝</button>
+        </div>
+      </div>
+      <div class="article-body">
+        <div class="article-content ${isEdited?'edited':''}" id="content-${a.num}">${hl(content,curQ)}</div>
+        <div class="edit-area-wrap" id="edit-wrap-${a.num}">
+          <textarea class="edit-textarea" id="edit-ta-${a.num}">${esc(content)}</textarea>
+          <div class="edit-actions">
+            ${isEdited?`<button class="btn-restore" onclick="restoreOriginal('${a.num}')">↩ คืนต้นฉบับ</button>`:''}
+            <button class="btn-cancel" onclick="cancelEdit('${a.num}')">ยกเลิก</button>
+            <button class="btn-save" onclick="saveEdit('${a.num}')">💾 บันทึก</button>
+          </div>
+        </div>
+        <div class="note-wrap" id="note-wrap-${a.num}">
+          <div class="note-box">
+            <div class="note-label">📌 ข้อสังเกต / บันทึก</div>
+            <textarea class="note-textarea" id="note-ta-${a.num}"
+              placeholder="พิมพ์ข้อสังเกต คำอธิบาย หรือฎีกาที่เกี่ยวข้อง..."
+              oninput="onNoteInput('${a.num}')">${esc(userNotes[a.num]||'')}</textarea>
+            <div class="note-saved" id="note-saved-${a.num}">✓ บันทึกแล้ว</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+  container.innerHTML=html;
+}
+
+// ── Search ──
+function onSearch(val){
+  curQ=val.trim();
+  document.getElementById('xcl').style.display=curQ?'block':'none';
+  renderArticles(getFiltered());
+}
+function clearSearch(){
+  document.getElementById('sinput').value='';
+  curQ='';
+  document.getElementById('xcl').style.display='none';
+  renderArticles(D);
+}
+
+// ── Scroll ──
+function scrollToArticle(num){
+  const el=document.getElementById('card-'+num);
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  el.classList.add('highlight');
+  setTimeout(()=>el.classList.remove('highlight'),1800);
+  // mark active in sidebar
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+  const nav=document.getElementById('nav-'+num);
+  if(nav){nav.classList.add('active');
+    // ensure parent sections open
+    let p=nav.parentElement;
+    while(p){
+      if(p.classList.contains('sb-section')||p.classList.contains('sb-chapter')||p.classList.contains('sb-part')){
+        p.classList.add('open');
+      }
+      p=p.parentElement;
+    }
+  }
+}
+function scrollToTop(){document.getElementById('main').scrollTo({top:0,behavior:'smooth'})}
+
+function setupScrollFab(){
+  document.getElementById('main').addEventListener('scroll',function(){
+    document.getElementById('fab').classList.toggle('visible',this.scrollTop>300);
+  });
+}
+
+// ── Edit ──
+function toggleEdit(num){
+  const wrap=document.getElementById('edit-wrap-'+num);
+  const isVis=wrap.classList.contains('visible');
+  if(isVis){cancelEdit(num)} else {wrap.classList.add('visible');document.getElementById('edit-btn-'+num).classList.add('active')}
+}
+function cancelEdit(num){
+  const a=D.find(x=>x.num===num);
+  const wrap=document.getElementById('edit-wrap-'+num);
+  document.getElementById('edit-ta-'+num).value=userEdits[num]||(a?a.text:'');
+  wrap.classList.remove('visible');
+  document.getElementById('edit-btn-'+num).classList.toggle('active',!!userEdits[num]);
+}
+function saveEdit(num){
+  const val=document.getElementById('edit-ta-'+num).value.trim();
+  const a=D.find(x=>x.num===num);
+  if(!val||val===(a?a.text:'')) delete userEdits[num];
+  else userEdits[num]=val;
+  saveEdits();
+  const isEdited=!!userEdits[num];
+  const content=userEdits[num]||(a?a.text:'');
+  document.getElementById('content-'+num).textContent=content;
+  document.getElementById('content-'+num).className='article-content'+(isEdited?' edited':'');
+  const numEl=document.querySelector('#card-'+num+' .article-num');
+  if(numEl) numEl.innerHTML='มาตรา '+esc(num)+(isEdited?'<span class="edited-badge">แก้ไข</span>':'');
+  cancelEdit(num);
+  const card=document.getElementById('card-'+num);
+  if(card) card.classList.toggle('has-edit',isEdited);
+  refreshSidebarDots();
+  showToast('บันทึกแล้ว ✓');
+}
+function restoreOriginal(num){
+  if(!confirm('คืนเนื้อหาต้นฉบับของมาตรานี้?')) return;
+  delete userEdits[num];
+  saveEdits();
+  const a=D.find(x=>x.num===num);
+  document.getElementById('edit-ta-'+num).value=a?a.text:'';
+  saveEdit(num);
+}
+
+// ── Note ──
+function toggleNote(num){
+  const wrap=document.getElementById('note-wrap-'+num);
+  const isVis=wrap.classList.contains('visible');
+  if(isVis){wrap.classList.remove('visible');document.getElementById('note-btn-'+num).classList.remove('note-active')}
+  else{wrap.classList.add('visible');document.getElementById('note-ta-'+num).focus();document.getElementById('note-btn-'+num).classList.add('note-active')}
+}
+let noteTimers={};
+function onNoteInput(num){
+  clearTimeout(noteTimers[num]);
+  noteTimers[num]=setTimeout(()=>{
+    const val=document.getElementById('note-ta-'+num).value.trim();
+    if(val) userNotes[num]=val; else delete userNotes[num];
+    saveNotes();
+    const card=document.getElementById('card-'+num);
+    if(card) card.classList.toggle('has-note',!!val);
+    refreshSidebarDots();
+    const msg=document.getElementById('note-saved-'+num);
+    msg.style.display='block';
+    setTimeout(()=>msg.style.display='none',1600);
+  },600);
+}
+
+// ── Export / Import / Reset ──
+function exportData(){
+  const data={edits:userEdits,notes:userNotes,exportedAt:new Date().toISOString(),v:1};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`cpc-pro-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('สำรองข้อมูลแล้ว ✓');
+}
+function importData(ev){
+  const file=ev.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.edits) Object.assign(userEdits,data.edits);
+      if(data.notes) Object.assign(userNotes,data.notes);
+      saveEdits(); saveNotes();
+      renderArticles(getFiltered()); buildSidebar();
+      showToast('นำเข้าข้อมูลแล้ว ✓');
+    }catch(err){showToast('ไฟล์ไม่ถูกต้อง')}
+    ev.target.value='';
+  };
+  reader.readAsText(file);
+}
+function confirmReset(){
+  if(!confirm('ล้างข้อมูลทั้งหมด (การแก้ไข + ข้อสังเกต) ?\nไม่สามารถกู้คืนได้')) return;
+  userEdits={}; userNotes={};
+  saveEdits(); saveNotes();
+  renderArticles(D); buildSidebar();
+  showToast('ล้างข้อมูลแล้ว');
+}
+
+// ── Toast ──
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── Service Worker ──
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+init();
+</script>
+</body>
+</html>
